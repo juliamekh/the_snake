@@ -142,11 +142,9 @@ def handle_events(snake):
                 pygame.K_LEFT: (-1, 0),
                 pygame.K_RIGHT: (1, 0),
             }
-            new_direction = direction_map.get(event.key)
-            if (new_direction and
-                    new_direction !=
-                    (-snake.direction[0], -snake.direction[1])):
-                snake.direction = new_direction
+            new_d = direction_map.get(event.key)
+            if (new_d and new_d != (-snake.direction[0], -snake.direction[1])):
+                snake.direction = new_d
 
 
 def main_game_loop(high_score):
