@@ -19,7 +19,7 @@ ALL_CELLS = {
     for y in range(GRID_HEIGHT)
 }
 
-# Инициализация Pygame
+# Инициализация  Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Змейка")
