@@ -13,7 +13,8 @@ RED_APPLE_COLOR = (255, 0, 0)
 GREEN_APPLE_COLOR = (173, 255, 47)
 BACKGROUND_COLOR = (169, 169, 169)
 FONT_COLOR = (0, 0, 0)
-ALL_CELLS = {(x * GRID_SIZE, y * GRID_SIZE) for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT)}
+ALL_CELLS = {(x * GRID_SIZE, y * GRID_SIZE)
+             for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT)}
 
 # Инициализация Pygame
 pygame.init()
@@ -22,16 +23,25 @@ pygame.display.set_caption("Змейка")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 24)
 
-# Класс змейки
+
 class Snake:
+    """Класс для представления змейки."""
+
     def __init__(self):
+        """Инициализация змейки."""
         self.reset()
 
     def get_head_position(self):
+        """Получить текущую позицию головы змейки."""
         return self.positions[0]
 
-    # Движение змейки
     def move(self):
+        """
+        Движение змейки.
+
+        Возвращает:
+            bool: True, если движение успешно, False в случае самоукуса.
+        """
         head_x, head_y = self.get_head_position()
         dx, dy = self.direction
         new_head = ((head_x + dx * GRID_SIZE) % SCREEN_WIDTH,
@@ -48,47 +58,72 @@ class Snake:
         return True
 
     def reset(self):
+        """Сброс состояния змейки."""
         self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
         self.direction = (0, -1)
         self.length = 1
         self.last = None
 
     def grow(self):
+        """Увеличить длину змейки."""
         self.length += 1
 
     def draw(self, surface):
+        """Отрисовать змейку."""
         for pos in self.positions:
             draw_cell(surface, pos, SNAKE_COLOR)
 
-# Класс яблока (красного или зелёного)
+
 class Apple:
+    """Класс для представления яблока."""
+
     def __init__(self, snake_positions, color):
+        """
+        Инициализация яблока.
+
+        Параметры:
+            snake_positions (list): Позиции тела змейки.
+            color (tuple): Цвет яблока.
+        """
         self.color = color
         self.position = self.random_position(snake_positions)
 
-    # Позиция яблока генерируется вне тела змейки
     def random_position(self, snake_positions):
+        """
+        Генерация случайной позиции яблока, исключая позиции змейки.
+
+        Параметры:
+            snake_positions (list): Позиции тела змейки.
+
+        Возвращает:
+            tuple: Новая позиция яблока.
+        """
         available_cells = list(ALL_CELLS - set(snake_positions))
         return choice(available_cells)
 
     def draw(self, surface):
+        """Отрисовать яблоко."""
         draw_cell(surface, self.position, self.color)
 
-# Рисование клетки
+
 def draw_cell(surface, position, color):
+    """Отрисовка отдельной клетки."""
     x, y = position
     pygame.draw.rect(surface, color, (x, y, GRID_SIZE, GRID_SIZE))
 
-# Отображение текста
+
 def draw_text(surface, text, position):
+    """Отображение текста на экране."""
     label = font.render(text, True, FONT_COLOR)
     surface.blit(label, position)
 
-# Экран окончания игры
+
 def game_over_screen():
+    """Экран окончания игры."""
     screen.fill(BACKGROUND_COLOR)
     draw_text(screen, "Вы проиграли!", (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40))
-    draw_text(screen, "Нажмите ПРОБЕЛ для рестарта", (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2))
+    draw_text(screen, "Нажмите ПРОБЕЛ для рестарта",
+              (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2))
     pygame.display.flip()
 
     while True:
@@ -96,12 +131,12 @@ def game_over_screen():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    return
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                return
 
-# Главная функция игры
+
 def main():
+    """Главная функция игры."""
     high_score = 0
 
     while True:
@@ -112,7 +147,6 @@ def main():
         speed = 10
 
         while True:
-            # Обработка событий
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -122,7 +156,6 @@ def main():
                         pygame.quit()
                         sys.exit()
 
-                    # Изменение направления змейки
                     direction_map = {
                         pygame.K_UP: (0, -1),
                         pygame.K_DOWN: (0, 1),
@@ -133,13 +166,11 @@ def main():
                     if new_direction and new_direction != (-snake.direction[0], -snake.direction[1]):
                         snake.direction = new_direction
 
-            # Движение змейки
             if not snake.move():
                 break
 
             head_position = snake.get_head_position()
 
-            # Проверка на съедание красного яблока
             if head_position == red_apple.position:
                 snake.grow()
                 red_apple.position = red_apple.random_position(snake.positions)
@@ -147,28 +178,20 @@ def main():
                 speed += 1
                 high_score = max(high_score, score)
 
-                # С 25% шансом создаётся зелёное яблоко
                 if randint(1, 4) == 1:
                     green_apple = Apple(snake.positions, GREEN_APPLE_COLOR)
                 else:
                     green_apple = None
 
-            # Проверка на съедание зелёного яблока — конец игры
             if green_apple and head_position == green_apple.position:
                 break
 
-            # Удаление зелёного яблока при появлении нового красного яблока
-            if green_apple and head_position == red_apple.position:
-                green_apple = None
-
-            # Отрисовка элементов
             screen.fill(BACKGROUND_COLOR)
             snake.draw(screen)
             red_apple.draw(screen)
             if green_apple:
                 green_apple.draw(screen)
 
-            # Отображение счёта и рекорда
             draw_text(screen, f"Счет: {score}", (10, 10))
             draw_text(screen, f"Рекорд: {high_score}", (10, 40))
 
@@ -176,6 +199,7 @@ def main():
             clock.tick(speed)
 
         game_over_screen()
+
 
 if __name__ == "__main__":
     main()
