@@ -19,7 +19,7 @@ ALL_CELLS = {
     for y in range(GRID_HEIGHT)
 }
 
-# Инициализация  Pygame
+# Инициализация Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Змейка")
@@ -106,7 +106,8 @@ def game_over_screen():
     """Отображает экран завершения игры."""
     screen.fill(BACKGROUND_COLOR)
     draw_text(
-        screen, "Вы проиграли!", (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40)
+        screen, "Вы проиграли!",
+        (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40)
     )
     draw_text(
         screen,
@@ -142,7 +143,8 @@ def handle_events(snake):
                 pygame.K_RIGHT: (1, 0),
             }
             new_direction = direction_map.get(event.key)
-            if new_direction and new_direction != (-snake.direction[0], -snake.direction[1]):
+            if (new_direction and new_direction !=
+                    (-snake.direction[0], -snake.direction[1])):
                 snake.direction = new_direction
 
 
