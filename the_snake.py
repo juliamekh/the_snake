@@ -105,9 +105,16 @@ def draw_text(surface, text, position):
 def game_over_screen():
     """Отображает экран завершения игры."""
     screen.fill(BACKGROUND_COLOR)
-    draw_text(screen, "Игра окончена!", (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40))
     draw_text(
-        screen, "Нажмите SPACE для перезапуска", (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2)
+        screen,
+        "Игра окончена!",
+        (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40)
+    )
+
+    draw_text(
+        screen,
+        "Нажмите SPACE для перезапуска",
+        (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2)
     )
     pygame.display.flip()
 
