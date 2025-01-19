@@ -27,7 +27,7 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 24)
 
 
-class Snake:
+class GameObject:
     """Класс, представляющий змейку."""
 
     def __init__(self):
@@ -151,7 +151,7 @@ def handle_events(snake):
 
 def main_game_loop(high_score):
     """Основной игровой цикл."""
-    snake = Snake()
+    snake = GameObject()
     red_apple = Apple(snake.positions, RED_APPLE_COLOR)
     green_apple = None
     score = 0
