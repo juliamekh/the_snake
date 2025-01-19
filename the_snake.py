@@ -117,8 +117,16 @@ def draw_text(surface, text, position):
 def game_over_screen():
     """Показывает экран завершения игры."""
     window.fill(BACKGROUND_COLOR)
-    draw_text(window, "Game Over!", (WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2 - 40))
-    draw_text(window, "Press SPACE to restart", (WINDOW_WIDTH // 2 - 180, WINDOW_HEIGHT // 2))
+    draw_text(
+        window,
+        "Game Over!",
+        (WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2 - 40)
+    )
+    draw_text(
+        window,
+        "Press SPACE to restart",
+        (WINDOW_WIDTH // 2 - 180, WINDOW_HEIGHT // 2)
+    )
     pygame.display.flip()
 
     while True:
@@ -143,9 +151,9 @@ def handle_events(snake):
                 pygame.K_LEFT: LEFT,
                 pygame.K_RIGHT: RIGHT,
             }
-            new_direction = directions.get(event.key)
-            if new_direction and new_direction != (-snake.direction[0], -snake.direction[1]):
-                snake.direction = new_direction
+            new_d = directions.get(event.key)
+            if new_d and new_d != (-snake.direction[0], -snake.direction[1]):
+                snake.direction = new_d
 
 
 def main_game_loop(high_score):
