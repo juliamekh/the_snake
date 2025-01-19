@@ -28,7 +28,7 @@ font = pygame.font.SysFont("Arial", 24)
 
 
 class Snake:
-    """Класс для представления змейки."""
+    """Класс, представляющий змейку."""
 
     def __init__(self):
         """Инициализация змейки."""
@@ -39,12 +39,12 @@ class Snake:
         return self.positions[0]
 
     def move(self):
-        """Перемещает змейку и проверяет на столкновение."""
+        """Двигает змейку и проверяет столкновения."""
         head_x, head_y = self.get_head_position()
         dx, dy = self.direction
         new_head = (
             (head_x + dx * GRID_SIZE) % SCREEN_WIDTH,
-            (head_y + dy * GRID_SIZE) % SCREEN_HEIGHT
+            (head_y + dy * GRID_SIZE) % SCREEN_HEIGHT,
         )
         if new_head in self.positions[2:]:
             self.positions = [new_head]
@@ -67,13 +67,13 @@ class Snake:
         self.length += 1
 
     def draw(self, surface):
-        """Отрисовывает змейку на экране."""
+        """Рисует змейку на экране."""
         for pos in self.positions:
             draw_cell(surface, pos, SNAKE_COLOR)
 
 
 class Apple:
-    """Класс для представления яблока."""
+    """Класс, представляющий яблоко."""
 
     def __init__(self, snake_positions, color):
         """Инициализация яблока."""
@@ -81,17 +81,17 @@ class Apple:
         self.position = self.random_position(snake_positions)
 
     def random_position(self, snake_positions):
-        """Генерирует случайное положение яблока."""
+        """Генерирует случайное положение для яблока."""
         available_cells = list(ALL_CELLS - set(snake_positions))
         return choice(available_cells)
 
     def draw(self, surface):
-        """Отрисовывает яблоко на экране."""
+        """Рисует яблоко на экране."""
         draw_cell(surface, self.position, self.color)
 
 
 def draw_cell(surface, position, color):
-    """Отрисовывает ячейку на экране."""
+    """Рисует клетку на экране."""
     x, y = position
     pygame.draw.rect(surface, color, (x, y, GRID_SIZE, GRID_SIZE))
 
@@ -105,14 +105,9 @@ def draw_text(surface, text, position):
 def game_over_screen():
     """Отображает экран завершения игры."""
     screen.fill(BACKGROUND_COLOR)
+    draw_text(screen, "Игра окончена!", (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40))
     draw_text(
-        screen, "Вы проиграли!",
-        (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40)
-    )
-    draw_text(
-        screen,
-        "Нажмите ПРОБЕЛ для рестарта",
-        (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2),
+        screen, "Нажмите SPACE для перезапуска", (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2)
     )
     pygame.display.flip()
 
@@ -126,7 +121,7 @@ def game_over_screen():
 
 
 def handle_events(snake):
-    """Обрабатывает события клавиатуры."""
+    """Обрабатывает нажатия клавиш."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -143,7 +138,7 @@ def handle_events(snake):
                 pygame.K_RIGHT: (1, 0),
             }
             new_d = direction_map.get(event.key)
-            if (new_d and new_d != (-snake.direction[0], -snake.direction[1])):
+            if new_d and new_d != (-snake.direction[0], -snake.direction[1]):
                 snake.direction = new_d
 
 
@@ -194,7 +189,7 @@ def main_game_loop(high_score):
 
 
 def main():
-    """Главная функция программы."""
+    """Главная функция."""
     high_score = 0
     while True:
         high_score = main_game_loop(high_score)
