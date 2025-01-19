@@ -98,9 +98,16 @@ def draw_text(surface, text, position):
 
 def game_over_screen():
     screen.fill(BACKGROUND_COLOR)
-    draw_text(screen, "Game Over!", (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40))
     draw_text(
-        screen, "Press SPACE to restart", (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2)
+        screen,
+        "Game Over!",
+        (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40)
+    )
+
+    draw_text(
+        screen,
+        "Press SPACE to restart",
+        (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2)
     )
     pygame.display.flip()
 
@@ -119,10 +126,16 @@ def handle_events(snake):
             pygame.quit()
             sys.exit()
         if event.type == pygame.KEYDOWN:
-            direction_map = {pygame.K_UP: UP, pygame.K_DOWN: DOWN, pygame.K_LEFT: LEFT, pygame.K_RIGHT: RIGHT}
-            new_direction = direction_map.get(event.key)
-            if new_direction and new_direction != (-snake.direction[0], -snake.direction[1]):
-                snake.direction = new_direction
+            direction_map = {
+                pygame.K_UP: UP,
+                pygame.K_DOWN: DOWN,
+                pygame.K_LEFT: LEFT,
+                pygame.K_RIGHT: RIGHT
+            }
+
+            new_d = direction_map.get(event.key)
+            if new_d and new_d != (-snake.direction[0], -snake.direction[1]):
+                snake.direction = new_d
 
 
 def main_game_loop(high_score):
