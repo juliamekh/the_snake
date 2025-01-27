@@ -1,10 +1,4 @@
-"""
-The Snake game is an educational project.
 
-Cohort: 43_python_plus.
-Performed by: Alexander Myasoed.
-Telegram: @Aleksandr_Myasoed.
-"""
 from abc import abstractmethod
 from random import randint
 import pygame as pg
