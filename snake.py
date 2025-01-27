@@ -1,181 +1,249 @@
-import pygame
-import sys
-from random import choice, randint
+"""
+The Snake game is an educational project.
 
-# Константы
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 400
-GRID_SIZE = 20
-GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
-GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
-SNAKE_COLOR = (0, 100, 0)
-RED_APPLE_COLOR = (255, 0, 0)
-GREEN_APPLE_COLOR = (173, 255, 47)
-BACKGROUND_COLOR = (169, 169, 169)
-FONT_COLOR = (0, 0, 0)
-ALL_CELLS = {(x * GRID_SIZE, y * GRID_SIZE) for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT)}
+Cohort: 43_python_plus.
+Performed by: Alexander Myasoed.
+Telegram: @Aleksandr_Myasoed.
+"""
+from abc import abstractmethod
+from random import randint
+import pygame as pg
+from typing import List, Tuple, Optional
 
-# Инициализация Pygame
-pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Змейка")
-clock = pygame.time.Clock()
-font = pygame.font.SysFont("Arial", 24)
+# Constants for field and grid sizes.
+SCREEN_WIDTH: int = 640
+SCREEN_HEIGHT: int = 480
+GRID_SIZE: int = 20
+GRID_WIDTH: int = SCREEN_WIDTH // GRID_SIZE
+GRID_HEIGHT: int = SCREEN_HEIGHT // GRID_SIZE
 
-# Класс змейки
-class Snake:
-    def __init__(self):
-        self.reset()
+# Directions of movement.
+UP: Tuple[int, int] = (0, -1)
+DOWN: Tuple[int, int] = (0, 1)
+LEFT: Tuple[int, int] = (-1, 0)
+RIGHT: Tuple[int, int] = (1, 0)
 
-    def get_head_position(self):
-        return self.positions[0]
+# The background color is black.
+BOARD_BACKGROUND_COLOR: Tuple[int, int, int] = (0, 0, 0)
 
-    # Движение змейки
-    def move(self):
-        head_x, head_y = self.get_head_position()
+# The default color of the object.
+DEFAULT_COLOR: Tuple[int, int, int] = (255, 255, 255)
+
+# The color of the cell border.
+BORDER_COLOR: Tuple[int, int, int] = (93, 216, 228)
+
+# The color of the apple.
+APPLE_COLOR: Tuple[int, int, int] = (255, 0, 0)
+
+# The color of the snake.
+SNAKE_COLOR: Tuple[int, int, int] = (0, 255, 0)
+
+# The speed of the snake's movement.
+SPEED: int = 20
+
+# Setting up the game window.
+screen: pg.Surface = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
+
+# Time setting.
+clock: pg.time.Clock = pg.time.Clock()
+
+
+class GameObject:
+    """Base class for game objects."""
+
+    def __init__(self, position: Tuple[int, int] = (0, 0),
+                 body_color: Tuple[int, int, int] = DEFAULT_COLOR) -> None:
+        """
+        Initialization of the game object.
+
+        Args:
+            position (tuple): The position of the object on the playing field.
+            body_color (tuple): The color of the object in RGB format.
+        """
+        self.position: Tuple[int, int] = position
+        self.body_color: Tuple[int, int, int] = body_color
+
+    @abstractmethod
+    def draw(self) -> None:
+        """Drawing a game object."""
+        raise NotImplementedError(
+            "The draw() method must be redefined in child classes"
+        )
+
+
+class Snake(GameObject):
+    """A class describing a snake."""
+
+    def __init__(self) -> None:
+        """Snake initialization."""
+        super().__init__((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), SNAKE_COLOR)
+        self.speed: int = SPEED
+        self.paused: bool = False
+        self.game_over: bool = False
+        self.direction: Tuple[int, int] = RIGHT
+        self.next_direction: Optional[Tuple[int, int]] = None
+        self.length: int = 1
+        self.positions: List[Tuple[int, int]] = [self.position]
+        self.last: Optional[Tuple[int, int]] = None
+
+    def update_direction(self) -> None:
+        """Updating the direction after pressing the button."""
+        if self.next_direction:
+            self.direction = self.next_direction
+            self.next_direction = None
+
+    def is_game_over(self, next_position: Tuple[int, int]) -> None:
+        """Checking that the snake did not crash into its tail."""
+        if next_position in self.positions[2:]:
+            self.game_over = True
+
+    def move(self) -> Tuple[int, int]:
+        """Calculating the new position of the Snake."""
+        self.update_direction()
+        x, y = self.position
         dx, dy = self.direction
-        new_head = ((head_x + dx * GRID_SIZE) % SCREEN_WIDTH,
-                    (head_y + dy * GRID_SIZE) % SCREEN_HEIGHT)
+        new_x = (x + dx * GRID_SIZE) % SCREEN_WIDTH
+        new_y = (y + dy * GRID_SIZE) % SCREEN_HEIGHT
+        next_position = (new_x, new_y)
+        return next_position
 
-        if new_head in self.positions[2:]:
-            self.positions = [new_head]
-            return False
+    def insert_next_position(self, next_position: Tuple[int, int]) -> None:
+        """Insert a new position into the Snake's body."""
+        self.position = next_position
+        self.positions.insert(0, self.position)
 
-        self.positions.insert(0, new_head)
+    def del_last_segment(self) -> None:
+        """Remove the last segment of the snake from the positions list."""
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
 
-        return True
-
-    def reset(self):
-        self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
-        self.direction = (0, -1)
+    def reset(self) -> None:
+        """Reset the snake to its initial state."""
         self.length = 1
+        self.positions = [self.position]
+        self.direction = RIGHT
         self.last = None
 
-    def grow(self):
-        self.length += 1
+    def get_head_position(self) -> Tuple[int, int]:
+        """Get the position of the snake's head."""
+        return self.positions[0]
 
-    def draw(self, surface):
-        for pos in self.positions:
-            draw_cell(surface, pos, SNAKE_COLOR)
+    def get_length(self) -> int:
+        """Calculate the length of the Snake."""
+        return len(self.positions)
 
-# Класс яблока (красного или зелёного)
-class Apple:
-    def __init__(self, snake_positions, color):
-        self.color = color
-        self.position = self.random_position(snake_positions)
+    def draw(self) -> None:
+        """Drawing a snake."""
+        for position in self.positions:
+            rect = pg.Rect(position, (GRID_SIZE, GRID_SIZE))
+            pg.draw.rect(screen, self.body_color, rect)
+            pg.draw.rect(screen, BORDER_COLOR, rect, 1)
 
-    # Позиция яблока генерируется вне тела змейки
-    def random_position(self, snake_positions):
-        available_cells = list(ALL_CELLS - set(snake_positions))
-        return choice(available_cells)
+        # Mashing the last segment.
+        if self.last:
+            last_rect = pg.Rect(self.last, (GRID_SIZE, GRID_SIZE))
+            pg.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
 
-    def draw(self, surface):
-        draw_cell(surface, self.position, self.color)
 
-# Рисование клетки
-def draw_cell(surface, position, color):
-    x, y = position
-    pygame.draw.rect(surface, color, (x, y, GRID_SIZE, GRID_SIZE))
+class Apple(GameObject):
+    """A class describing an apple."""
 
-# Отображение текста
-def draw_text(surface, text, position):
-    label = font.render(text, True, FONT_COLOR)
-    surface.blit(label, position)
+    def __init__(
+            self,
+            snake_positions: List[Tuple[int, int]] = [(0, 0)]) -> None:
+        """Initializing the apple."""
+        super().__init__(position=(0, 0), body_color=APPLE_COLOR)
+        self.snake_positions: List[Tuple[int, int]] = snake_positions
+        self.randomize_position()
 
-# Экран окончания игры
-def game_over_screen():
-    screen.fill(BACKGROUND_COLOR)
-    draw_text(screen, "Вы проиграли!", (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 40))
-    draw_text(screen, "Нажмите ПРОБЕЛ для рестарта", (SCREEN_WIDTH // 2 - 180, SCREEN_HEIGHT // 2))
-    pygame.display.flip()
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    return
-
-# Главная функция игры
-def main():
-    high_score = 0
-
-    while True:
-        snake = Snake()
-        red_apple = Apple(snake.positions, RED_APPLE_COLOR)
-        green_apple = None
-        score = 0
-        speed = 10
-
+    def generate_new_position(self) -> Tuple[int, int]:
+        """The function generates a new random position that is not occupied by the Snake."""
         while True:
-            # Обработка событий
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        sys.exit()
+            x = randint(0, GRID_WIDTH - 1)
+            y = randint(0, GRID_HEIGHT - 1)
+            new_position = (x * GRID_SIZE, y * GRID_SIZE)
+            if new_position not in self.snake_positions:
+                return new_position
 
-                    # Изменение направления змейки
-                    direction_map = {
-                        pygame.K_UP: (0, -1),
-                        pygame.K_DOWN: (0, 1),
-                        pygame.K_LEFT: (-1, 0),
-                        pygame.K_RIGHT: (1, 0),
-                    }
-                    new_direction = direction_map.get(event.key)
-                    if new_direction and new_direction != (-snake.direction[0], -snake.direction[1]):
-                        snake.direction = new_direction
+    def randomize_position(self) -> None:
+        """Generating a random apple position on the playing field."""
+        self.position = self.generate_new_position()
 
-            # Движение змейки
-            if not snake.move():
-                break
+    def draw(self) -> None:
+        """Rendering an apple."""
+        rect = pg.Rect(self.position, (GRID_SIZE, GRID_SIZE))
+        pg.draw.rect(screen, self.body_color, rect)
+        pg.draw.rect(screen, BORDER_COLOR, rect, 1)
 
-            head_position = snake.get_head_position()
 
-            # Проверка на съедание красного яблока
-            if head_position == red_apple.position:
-                snake.grow()
-                red_apple.position = red_apple.random_position(snake.positions)
-                score += 1
-                speed += 1
-                high_score = max(high_score, score)
+def handle_keys(snake: Snake) -> bool:
+    """Processing user input."""
+    direction_mapping = {
+        pg.K_UP: UP,
+        pg.K_DOWN: DOWN,
+        pg.K_LEFT: LEFT,
+        pg.K_RIGHT: RIGHT,
+    }
 
-                # С 25% шансом создаётся зелёное яблоко
-                if randint(1, 4) == 1:
-                    green_apple = Apple(snake.positions, GREEN_APPLE_COLOR)
-                else:
-                    green_apple = None
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            return False
+        elif event.type == pg.KEYDOWN:
+            if event.key == pg.K_SPACE:
+                snake.paused = not snake.paused
+            else:
+                new_direction = direction_mapping.get(event.key, None)
+                if new_direction and (
+                    (snake.direction == UP and new_direction != DOWN)
+                    or (snake.direction == DOWN and new_direction != UP)
+                    or (snake.direction == LEFT and new_direction != RIGHT)
+                    or (snake.direction == RIGHT and new_direction != LEFT)
+                ):
+                    snake.next_direction = new_direction
+    return True
 
-            # Проверка на съедание зелёного яблока — конец игры
-            if green_apple and head_position == green_apple.position:
-                break
 
-            # Удаление зелёного яблока при появлении нового красного яблока
-            if green_apple and head_position == red_apple.position:
-                green_apple = None
+def main() -> None:
+    """Main function."""
+    pg.init()
+    snake = Snake()
+    apple = Apple(snake.positions)
+    running = True
+    while running:
+        clock.tick(snake.speed)
+        screen.fill(BOARD_BACKGROUND_COLOR)
+        running = handle_keys(snake)
+        if not (snake.game_over or snake.paused):
+            next_position = snake.move()
+            snake.is_game_over(next_position)
+            snake.insert_next_position(next_position)
+            snake.del_last_segment()
+            if snake.position == apple.position:
+                snake.length += 1
+                if snake.speed < 100:
+                    snake.speed += 1
+                apple.position = apple.generate_new_position()
+        snake.draw()
+        apple.draw()
+        if snake.game_over:
+            pg.display.set_caption(
+                f'Игра окончена! | Скорость: {snake.speed} | '
+                f'Длина: {snake.get_length()}'
+            )
+        elif snake.paused:
+            pg.display.set_caption(
+                f'Пауза! | Скорость: {snake.speed} | '
+                f'Длина: {snake.get_length()}'
+            )
+        else:
+            pg.display.set_caption(
+                f'Змейка | Скорость: {snake.speed} | '
+                f'Длина: {snake.get_length()}'
+            )
+        pg.display.update()
+        clock.tick(snake.speed)
+    pg.quit()
 
-            # Отрисовка элементов
-            screen.fill(BACKGROUND_COLOR)
-            snake.draw(screen)
-            red_apple.draw(screen)
-            if green_apple:
-                green_apple.draw(screen)
 
-            # Отображение счёта и рекорда
-            draw_text(screen, f"Счет: {score}", (10, 10))
-            draw_text(screen, f"Рекорд: {high_score}", (10, 40))
-
-            pygame.display.flip()
-            clock.tick(speed)
-
-        game_over_screen()
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
